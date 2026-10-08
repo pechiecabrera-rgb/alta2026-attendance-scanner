@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ALTA 2026 Attendance Scanner</title>
+
+  <!-- QR Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      margin: 5px 0;
+      color: #7b1e3a;
+      font-size: 26px;
+    }
+
+    h2 {
+      margin: 5px 0 20px;
+      color: #555;
+      font-size: 17px;
+      font-weight: normal;
+    }
+
+    #reader {
+      width: 100%;
+      margin: 15px auto;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      min-height: 55px;
+    }
+
+    .waiting {
+      background: #eeeeee;
+      color: #555;
+    }
+
+    .success {
+      background: #dff5e1;
+      color: #176b2c;
+    }
+
+    .error {
+      background: #ffe0e0;
+      color: #a40000;
+    }
+
+    .info {
+      background: #fff2cc;
+      color: #765500;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>ALTA 2026</h1>
+  <h2>Attendance Scanner</h2>
+
+  <div id="reader"></div>
+
+  <div id="result" class="waiting">
+    Please scan the participant's QR Code.
+  </div>
+
+  <div class="footer">
+    ZAMPENSU-ALTA Regional Fusion<br>
+    Wellness Program & General Assembly
+  </div>
+
+</div>
+
+
+<script>
+
+  /*
+   * ==========================================================
+   * ALTA 2026 ATTENDANCE SCANNER
+   * ==========================================================
+   *
+   * QR Code → GitHub Scanner → Apps Script Web API
+   *
+   * Apps Script API:
+   * ?api=scan&qr=REGISTRATION_ID
+   *
+   * Morning:
+   * 12:00 AM – 11:59 AM
+   *
+   * Afternoon:
+   * 12:00 PM – 11:59 PM
+   * ==========================================================
+   */
+
+  // IMPORTANT:
+  // We will put your actual Google Apps Script Web App URL here
+  // after the scanner file is created.
+
+  const SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+
+  let isProcessing = false;
+
+
+  function showResult(message, type) {
+
+    const result = document.getElementById("result");
+
+    result.className = type;
+    result.innerHTML = message;
+
+  }
+
+
+  function scanSuccess(decodedText) {
+
+    // Prevent multiple scans while processing
+    if (isProcessing) {
+      return;
+    }
+
+    isProcessing = true;
+
+    const qrValue = decodedText.trim();
+
+    showResult(
+      "⏳ Processing attendance...<br>" +
+      "QR: " + qrValue,
+      "info"
+    );
+
+
+    // Build Apps Script API URL
+    const url =
+      SCRIPT_URL +
+      "?api=scan&qr=" +
+      encodeURIComponent(qrValue);
+
+
+    fetch(url)
+
+      .then(response => response.text())
+
+      .then(data => {
+
+        console.log("Apps Script response:", data);
+
+        let result;
+
+        try {
+
+          // JSONP response may look like:
+          // callback({...})
+
+          if (data.startsWith("callback(")) {
+
+            const jsonText =
+              data.substring(9, data.length - 1);
+
+            result = JSON.parse(jsonText);
+
+          } else {
+
+            result = JSON.parse(data);
+
+          }
+
+        } catch (error) {
+
+          showResult(
+            "❌ Unable to read server response.",
+            "error"
+          );
+
+          isProcessing = false;
+          return;
+
+        }
+
+
+        // Display server result
+        if (result.success) {
+
+          showResult(
+            "✅ " +
+            (result.message || "Attendance recorded successfully."),
+            "success"
+          );
+
+        } else {
+
+          showResult(
+            "⚠️ " +
+            (result.message || "Attendance could not be recorded."),
+            "error"
+          );
+
+        }
+
+
+        // Allow another scan after processing
+        setTimeout(() => {
+
+          isProcessing = false;
+
+          showResult(
+            "Please scan the next participant's QR Code.",
+            "waiting"
+          );
+
+        }, 2500);
+
+      })
+
+      .catch(error => {
+
+        console.error(error);
+
+        showResult(
+          "❌ Connection error.<br>" +
+          "Please check the internet connection.",
+          "error"
+        );
+
+        isProcessing = false;
+
+      });
+
+  }
+
+
+  function scanError(errorMessage) {
+
+    // Ignore normal camera scanning errors.
+    // The scanner will continue looking for a QR code.
+  }
+
+
+  // Start QR scanner
+  const scanner = new Html5QrcodeScanner(
+
+    "reader",
+
+    {
+      fps: 10,
+      qrbox: {
+        width: 250,
+        height: 250
+      },
+      rememberLastUsedCamera: true
+    },
+
+    false
+
+  );
+
+
+  scanner.render(
+    scanSuccess,
+    scanError
+  );
+
+</script>
+
+</body>
+</html>
