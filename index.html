@@ -7,7 +7,10 @@
   <title>ALTA 2026 Attendance Scanner</title>
 
   <!-- QR Scanner Library - ALTA 2026 -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+  </script>
 
   <style>
     * {
@@ -78,8 +81,62 @@
       color: #765500;
     }
 
+    /* =========================================
+       MANUAL ATTENDANCE ENTRY
+       ========================================= */
+
+    .manual-section {
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .manual-section h3 {
+      margin: 0 0 8px;
+      color: #7b1e3a;
+      font-size: 18px;
+    }
+
+    .manual-section p {
+      margin: 0 0 12px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    #manualId {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    #manualButton {
+      width: 100%;
+      margin-top: 10px;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      background: #7b1e3a;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #manualButton:hover {
+      opacity: 0.9;
+    }
+
+    #manualButton:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
     .footer {
-      margin-top: 20px;
+      margin-top: 22px;
       font-size: 13px;
       color: #777;
     }
@@ -93,15 +150,48 @@
   <h1>ALTA 2026</h1>
   <h2>Attendance Scanner</h2>
 
+  <!-- QR CAMERA / IMAGE SCANNER -->
   <div id="reader"></div>
 
+  <!-- RESULT MESSAGE -->
   <div id="result" class="waiting">
     Please scan the participant's QR Code.
   </div>
 
+
+  <!-- =====================================
+       MANUAL REGISTRATION ID BACKUP
+       ===================================== -->
+
+  <div class="manual-section">
+
+    <h3>Manual Attendance Entry</h3>
+
+    <p>
+      If the QR Code cannot be scanned,
+      enter the ALTA Registration ID below.
+    </p>
+
+    <input
+      type="text"
+      id="manualId"
+      placeholder="Enter ALTA Registration ID"
+      autocomplete="off"
+    >
+
+    <button
+      type="button"
+      id="manualButton"
+      onclick="submitManualId()">
+      Submit Attendance
+    </button>
+
+  </div>
+
+
   <div class="footer">
     ZAMPENSU-ALTA Regional Fusion<br>
-    Wellness Program & General Assembly
+    Wellness Program &amp; General Assembly
   </div>
 
 </div>
@@ -114,10 +204,17 @@
    * ALTA 2026 ATTENDANCE SCANNER
    * ==========================================================
    *
-   * QR Code → GitHub Scanner → Apps Script Web API
-   *
-   * Apps Script API:
-   * ?api=scan&qr=REGISTRATION_ID
+   * QR Code / Manual ID
+   *          ↓
+   * GitHub Pages Scanner
+   *          ↓
+   * JSONP
+   *          ↓
+   * Google Apps Script
+   *          ↓
+   * processQRScan()
+   *          ↓
+   * Attendance Sheet
    *
    * Morning:
    * 12:00 AM – 11:59 AM
@@ -127,19 +224,28 @@
    * ==========================================================
    */
 
-  // IMPORTANT:
-  // We will put your actual Google Apps Script Web App URL here
-  // after the scanner file is created.
 
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJVtUazqNKH9VA5rogtujNYrLcaqQpHX5mR_0GQYz7FTpGcNJsiC90aRVw66vSdlrj/exec";
+  // ==========================================================
+  // GOOGLE APPS SCRIPT WEB APP
+  // ==========================================================
+
+  const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbwJVtUazqNKH9VA5rogtujNYrLcaqQpHX5mR_0GQYz7FTpGcNJsiC90aRVw66vSdlrj/exec";
 
 
+  // Prevent duplicate processing while a request is active.
   let isProcessing = false;
 
 
+
+  // ==========================================================
+  // DISPLAY RESULT
+  // ==========================================================
+
   function showResult(message, type) {
 
-    const result = document.getElementById("result");
+    const result =
+      document.getElementById("result");
 
     result.className = type;
     result.innerHTML = message;
@@ -147,147 +253,367 @@
   }
 
 
+
+  // ==========================================================
+  // QR SCAN SUCCESS
+  // ==========================================================
+
   function scanSuccess(decodedText) {
 
-    // Prevent multiple scans while processing
+    const qrValue =
+      String(decodedText || "").trim();
+
+    processAttendance(qrValue);
+
+  }
+
+
+
+  // ==========================================================
+  // QR SCAN ERROR
+  // ==========================================================
+
+  function scanError(errorMessage) {
+
+    /*
+     * Normal scanner errors happen continuously
+     * while the camera is looking for a QR Code.
+     *
+     * We intentionally ignore them.
+     */
+
+  }
+
+
+
+  // ==========================================================
+  // MANUAL REGISTRATION ID
+  // ==========================================================
+
+  function submitManualId() {
+
+    const input =
+      document.getElementById("manualId");
+
+    const qrValue =
+      input.value.trim();
+
+    if (!qrValue) {
+
+      showResult(
+        "⚠️ Please enter an ALTA Registration ID.",
+        "error"
+      );
+
+      input.focus();
+
+      return;
+
+    }
+
+    processAttendance(qrValue);
+
+  }
+
+
+
+  // Allow ENTER key for manual entry.
+
+  document
+    .getElementById("manualId")
+    .addEventListener("keydown", function(event) {
+
+      if (event.key === "Enter") {
+
+        event.preventDefault();
+
+        submitManualId();
+
+      }
+
+    });
+
+
+
+  // ==========================================================
+  // PROCESS ATTENDANCE
+  // ==========================================================
+
+  function processAttendance(qrValue) {
+
+    // Prevent repeated scans while processing.
+
     if (isProcessing) {
       return;
     }
 
+
+    qrValue =
+      String(qrValue || "").trim();
+
+
+    if (!qrValue) {
+
+      showResult(
+        "⚠️ No Registration ID was detected.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
     isProcessing = true;
 
-    const qrValue = decodedText.trim();
+
+    const manualButton =
+      document.getElementById("manualButton");
+
+    manualButton.disabled = true;
+
 
     showResult(
       "⏳ Processing attendance...<br>" +
-      "QR: " + qrValue,
+      "ID: " + escapeHtml(qrValue),
       "info"
     );
 
 
-    // Build Apps Script API URL
-    const url =
-      SCRIPT_URL +
-      "?api=scan&qr=" +
-      encodeURIComponent(qrValue);
+    // ========================================================
+    // CREATE UNIQUE JSONP CALLBACK
+    // ========================================================
+
+    const callbackName =
+      "altaScanCallback_" +
+      Date.now() +
+      "_" +
+      Math.floor(Math.random() * 100000);
 
 
-    fetch(url)
-
-      .then(response => response.text())
-
-      .then(data => {
-
-        console.log("Apps Script response:", data);
-
-        let result;
-
-        try {
-
-          // JSONP response may look like:
-          // callback({...})
-
-          if (data.startsWith("callback(")) {
-
-            const jsonText =
-              data.substring(9, data.length - 1);
-
-            result = JSON.parse(jsonText);
-
-          } else {
-
-            result = JSON.parse(data);
-
-          }
-
-        } catch (error) {
-
-          showResult(
-            "❌ Unable to read server response.",
-            "error"
-          );
-
-          isProcessing = false;
-          return;
-
-        }
+    let completed = false;
 
 
-        // Display server result
-        if (result.success) {
+    // ========================================================
+    // CREATE SCRIPT ELEMENT FOR JSONP
+    // ========================================================
 
-          showResult(
-            "✅ " +
-            (result.message || "Attendance recorded successfully."),
-            "success"
-          );
-
-        } else {
-
-          showResult(
-            "⚠️ " +
-            (result.message || "Attendance could not be recorded."),
-            "error"
-          );
-
-        }
+    const script =
+      document.createElement("script");
 
 
-        // Allow another scan after processing
-        setTimeout(() => {
+    // ========================================================
+    // CLEANUP FUNCTION
+    // ========================================================
 
-          isProcessing = false;
+    function cleanup() {
 
-          showResult(
-            "Please scan the next participant's QR Code.",
-            "waiting"
-          );
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
 
-        }, 2500);
+      try {
+        delete window[callbackName];
+      } catch (error) {
+        window[callbackName] = undefined;
+      }
 
-      })
+    }
 
-      .catch(error => {
 
-        console.error(error);
+    // ========================================================
+    // APPS SCRIPT RESPONSE
+    // ========================================================
+
+    window[callbackName] = function(result) {
+
+      if (completed) {
+        return;
+      }
+
+      completed = true;
+
+
+      console.log(
+        "ALTA Apps Script response:",
+        result
+      );
+
+
+      cleanup();
+
+
+      if (result && result.success) {
 
         showResult(
-          "❌ Connection error.<br>" +
-          "Please check the internet connection.",
+          "✅ " +
+          escapeHtml(
+            result.message ||
+            "Attendance recorded successfully."
+          ),
+          "success"
+        );
+
+
+        // Clear manual ID after successful attendance.
+
+        document.getElementById("manualId").value = "";
+
+      } else {
+
+        showResult(
+          "⚠️ " +
+          escapeHtml(
+            (result && result.message) ||
+            "Attendance could not be recorded."
+          ),
           "error"
         );
 
+      }
+
+
+      // Allow another participant after a short delay.
+
+      setTimeout(function() {
+
         isProcessing = false;
 
-      });
+        manualButton.disabled = false;
+
+      }, 1500);
+
+    };
+
+
+    // ========================================================
+    // BUILD APPS SCRIPT JSONP URL
+    // ========================================================
+
+    const jsonpUrl =
+      SCRIPT_URL +
+      "?api=scan" +
+      "&qr=" +
+      encodeURIComponent(qrValue) +
+      "&callback=" +
+      encodeURIComponent(callbackName) +
+      "&_=" +
+      Date.now();
+
+
+    script.src = jsonpUrl;
+    script.async = true;
+
+
+    // ========================================================
+    // CONNECTION ERROR
+    // ========================================================
+
+    script.onerror = function() {
+
+      if (completed) {
+        return;
+      }
+
+      completed = true;
+
+
+      cleanup();
+
+
+      showResult(
+        "❌ Connection error.<br>" +
+        "Unable to contact the ALTA 2026 server.",
+        "error"
+      );
+
+
+      isProcessing = false;
+      manualButton.disabled = false;
+
+    };
+
+
+    // ========================================================
+    // SEND REQUEST
+    // ========================================================
+
+    document.body.appendChild(script);
+
+
+    // ========================================================
+    // TIMEOUT PROTECTION
+    // ========================================================
+
+    setTimeout(function() {
+
+      if (completed) {
+        return;
+      }
+
+      completed = true;
+
+
+      cleanup();
+
+
+      showResult(
+        "❌ Server timeout.<br>" +
+        "Please try again.",
+        "error"
+      );
+
+
+      isProcessing = false;
+      manualButton.disabled = false;
+
+    }, 15000);
 
   }
 
 
-  function scanError(errorMessage) {
 
-    // Ignore normal camera scanning errors.
-    // The scanner will continue looking for a QR code.
+  // ==========================================================
+  // BASIC HTML ESCAPE
+  // Prevent IDs/messages from being interpreted as HTML.
+  // ==========================================================
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
   }
 
 
-  // Start QR scanner
-  const scanner = new Html5QrcodeScanner(
 
-    "reader",
+  // ==========================================================
+  // START QR SCANNER
+  // ==========================================================
 
-    {
-      fps: 10,
-      qrbox: {
-        width: 250,
-        height: 250
+  const scanner =
+    new Html5QrcodeScanner(
+
+      "reader",
+
+      {
+        fps: 10,
+
+        qrbox: {
+          width: 250,
+          height: 250
+        },
+
+        rememberLastUsedCamera: true
       },
-      rememberLastUsedCamera: true
-    },
 
-    false
+      false
 
-  );
+    );
 
 
   scanner.render(
