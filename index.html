@@ -1,246 +1,397 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>ALTA 2026 Attendance Scanner</title>
 
-  <!-- QR Scanner Library - ALTA 2026 -->
+
+  <!-- =====================================================
+       QR SCANNER LIBRARY
+       ===================================================== -->
+
   <script
     src="https://unpkg.com/html5-qrcode"
     type="text/javascript">
   </script>
 
+
+  <!-- =====================================================
+       PAGE DESIGN
+       ===================================================== -->
+
   <style>
+
     * {
       box-sizing: border-box;
     }
 
+
     body {
+
       margin: 0;
+
       padding: 20px;
+
       font-family: Arial, sans-serif;
+
       background: #f4f4f4;
+
       text-align: center;
+
     }
+
 
     .container {
+
       max-width: 520px;
+
       margin: auto;
+
       background: white;
+
       padding: 20px;
+
       border-radius: 18px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+
+      box-shadow:
+        0 4px 15px rgba(0,0,0,0.15);
+
     }
+
 
     h1 {
+
       margin: 5px 0;
+
       color: #7b1e3a;
+
       font-size: 26px;
+
     }
+
 
     h2 {
+
       margin: 5px 0 20px;
+
       color: #555;
+
       font-size: 17px;
+
       font-weight: normal;
+
     }
+
 
     #reader {
+
       width: 100%;
+
       margin: 15px auto;
+
     }
+
 
     #result {
+
       margin-top: 20px;
+
       padding: 15px;
+
       border-radius: 12px;
+
       font-size: 18px;
+
       font-weight: bold;
+
       min-height: 55px;
+
     }
+
 
     .waiting {
+
       background: #eeeeee;
+
       color: #555;
+
     }
+
 
     .success {
+
       background: #dff5e1;
+
       color: #176b2c;
+
     }
+
 
     .error {
+
       background: #ffe0e0;
+
       color: #a40000;
+
     }
+
 
     .info {
+
       background: #fff2cc;
+
       color: #765500;
+
     }
 
-    /* =========================================
-       MANUAL ATTENDANCE ENTRY
-       ========================================= */
+
+    /* =====================================================
+       MANUAL ENTRY
+       ===================================================== */
 
     .manual-section {
+
       margin-top: 25px;
+
       padding-top: 20px;
+
       border-top: 1px solid #ddd;
+
     }
+
 
     .manual-section h3 {
+
       margin: 0 0 8px;
+
       color: #7b1e3a;
-      font-size: 18px;
+
+      font-size: 19px;
+
     }
+
 
     .manual-section p {
+
       margin: 0 0 12px;
+
       color: #666;
+
       font-size: 14px;
+
     }
 
-    #manualId {
+
+    #registrationId {
+
       width: 100%;
+
       padding: 13px;
+
       border: 1px solid #bbb;
+
       border-radius: 8px;
-      font-size: 16px;
+
+      font-size: 17px;
+
       text-align: center;
-      text-transform: uppercase;
+
+      margin-bottom: 10px;
+
     }
 
-    #manualButton {
+
+    #submitButton {
+
       width: 100%;
-      margin-top: 10px;
+
       padding: 13px;
+
       border: none;
+
       border-radius: 8px;
-      background: #7b1e3a;
+
+      background: #8b1e3f;
+
       color: white;
-      font-size: 16px;
+
+      font-size: 17px;
+
       font-weight: bold;
+
       cursor: pointer;
+
     }
 
-    #manualButton:hover {
-      opacity: 0.9;
+
+    #submitButton:hover {
+
+      background: #701731;
+
     }
 
-    #manualButton:disabled {
+
+    #submitButton:disabled {
+
       background: #999;
+
       cursor: not-allowed;
+
     }
+
 
     .footer {
-      margin-top: 22px;
+
+      margin-top: 20px;
+
       font-size: 13px;
+
       color: #777;
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
 <div class="container">
 
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
   <h1>ALTA 2026</h1>
+
   <h2>Attendance Scanner</h2>
 
-  <!-- QR CAMERA / IMAGE SCANNER -->
+
+  <!-- =====================================================
+       QR CAMERA SCANNER
+       ===================================================== -->
+
   <div id="reader"></div>
 
-  <!-- RESULT MESSAGE -->
-  <div id="result" class="waiting">
+
+  <!-- =====================================================
+       RESULT
+       ===================================================== -->
+
+  <div
+    id="result"
+    class="waiting"
+  >
+
     Please scan the participant's QR Code.
+
   </div>
 
 
-  <!-- =====================================
-       MANUAL REGISTRATION ID BACKUP
-       ===================================== -->
+  <!-- =====================================================
+       MANUAL ATTENDANCE ENTRY
+       ===================================================== -->
 
   <div class="manual-section">
 
-    <h3>Manual Attendance Entry</h3>
+    <h3>
+      Manual Attendance Entry
+    </h3>
+
 
     <p>
       If the QR Code cannot be scanned,
       enter the ALTA Registration ID below.
     </p>
 
+
     <input
       type="text"
-      id="manualId"
-      placeholder="Enter ALTA Registration ID"
+      id="registrationId"
+      placeholder="Example: ALTA26-0001"
       autocomplete="off"
     >
 
+
     <button
-      type="button"
-      id="manualButton"
-      onclick="submitManualId()">
+      id="submitButton"
+      onclick="submitManualAttendance()"
+    >
+
       Submit Attendance
+
     </button>
 
   </div>
 
 
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
   <div class="footer">
+
     ZAMPENSU-ALTA Regional Fusion<br>
+
     Wellness Program &amp; General Assembly
+
   </div>
+
 
 </div>
 
 
 <script>
 
-  /*
-   * ==========================================================
-   * ALTA 2026 ATTENDANCE SCANNER
-   * ==========================================================
-   *
-   * QR Code / Manual ID
-   *          ↓
-   * GitHub Pages Scanner
-   *          ↓
-   * JSONP
-   *          ↓
-   * Google Apps Script
-   *          ↓
-   * processQRScan()
-   *          ↓
-   * Attendance Sheet
-   *
-   * Morning:
-   * 12:00 AM – 11:59 AM
-   *
-   * Afternoon:
-   * 12:00 PM – 11:59 PM
-   * ==========================================================
-   */
+
+  /* =========================================================
+     ALTA 2026 ATTENDANCE SCANNER
+     =========================================================
+
+     QR CODE / MANUAL ENTRY
+              ↓
+     GitHub Pages Scanner
+              ↓
+     JSONP
+              ↓
+     Google Apps Script Web App
+              ↓
+     processQRScan()
+              ↓
+     Attendance Sheet
+
+     ========================================================= */
 
 
-  // ==========================================================
-  // GOOGLE APPS SCRIPT WEB APP
-  // ==========================================================
+  /* =========================================================
+     GOOGLE APPS SCRIPT WEB APP URL
+     ========================================================= */
 
   const SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbwJVtUazqNKH9VA5rogtujNYrLcaqQpHX5mR_0GQYz7FTpGcNJsiC90aRVw66vSdlrj/exec";
 
 
-  // Prevent duplicate processing while a request is active.
+  /* =========================================================
+     PROCESSING CONTROL
+     ========================================================= */
+
   let isProcessing = false;
 
 
-
-  // ==========================================================
-  // DISPLAY RESULT
-  // ==========================================================
+  /* =========================================================
+     SHOW RESULT
+     ========================================================= */
 
   function showResult(message, type) {
 
@@ -248,115 +399,48 @@
       document.getElementById("result");
 
     result.className = type;
+
     result.innerHTML = message;
 
   }
 
 
+  /* =========================================================
+     SEND QR / REGISTRATION ID TO APPS SCRIPT
+     
+     IMPORTANT:
+     We use JSONP instead of fetch().
+     
+     This avoids the CORS problem between:
+     
+     GitHub Pages
+             and
+     Google Apps Script
+     
+     ========================================================= */
 
-  // ==========================================================
-  // QR SCAN SUCCESS
-  // ==========================================================
+  function sendAttendance(registrationId) {
 
-  function scanSuccess(decodedText) {
-
-    const qrValue =
-      String(decodedText || "").trim();
-
-    processAttendance(qrValue);
-
-  }
-
-
-
-  // ==========================================================
-  // QR SCAN ERROR
-  // ==========================================================
-
-  function scanError(errorMessage) {
-
-    /*
-     * Normal scanner errors happen continuously
-     * while the camera is looking for a QR Code.
-     *
-     * We intentionally ignore them.
-     */
-
-  }
-
-
-
-  // ==========================================================
-  // MANUAL REGISTRATION ID
-  // ==========================================================
-
-  function submitManualId() {
-
-    const input =
-      document.getElementById("manualId");
-
-    const qrValue =
-      input.value.trim();
-
-    if (!qrValue) {
-
-      showResult(
-        "⚠️ Please enter an ALTA Registration ID.",
-        "error"
-      );
-
-      input.focus();
-
-      return;
-
-    }
-
-    processAttendance(qrValue);
-
-  }
-
-
-
-  // Allow ENTER key for manual entry.
-
-  document
-    .getElementById("manualId")
-    .addEventListener("keydown", function(event) {
-
-      if (event.key === "Enter") {
-
-        event.preventDefault();
-
-        submitManualId();
-
-      }
-
-    });
-
-
-
-  // ==========================================================
-  // PROCESS ATTENDANCE
-  // ==========================================================
-
-  function processAttendance(qrValue) {
-
-    // Prevent repeated scans while processing.
 
     if (isProcessing) {
+
       return;
+
     }
 
 
-    qrValue =
-      String(qrValue || "").trim();
+    registrationId =
+      registrationId.trim();
 
 
-    if (!qrValue) {
+    if (!registrationId) {
 
       showResult(
-        "⚠️ No Registration ID was detected.",
+
+        "⚠️ Please enter an ALTA Registration ID.",
+
         "error"
+
       );
 
       return;
@@ -367,233 +451,316 @@
     isProcessing = true;
 
 
-    const manualButton =
-      document.getElementById("manualButton");
-
-    manualButton.disabled = true;
-
-
     showResult(
+
       "⏳ Processing attendance...<br>" +
-      "ID: " + escapeHtml(qrValue),
+      "Registration ID: " +
+      registrationId,
+
       "info"
+
     );
 
 
-    // ========================================================
-    // CREATE UNIQUE JSONP CALLBACK
-    // ========================================================
+    /* -------------------------------------------------------
+       Create a unique JSONP callback name
+       ------------------------------------------------------- */
 
     const callbackName =
-      "altaScanCallback_" +
-      Date.now() +
-      "_" +
-      Math.floor(Math.random() * 100000);
+      "altaAttendanceCallback_" +
+      Date.now();
 
 
-    let completed = false;
+    /* -------------------------------------------------------
+       Create global callback function
+       ------------------------------------------------------- */
+
+    window[callbackName] =
+      function(result) {
 
 
-    // ========================================================
-    // CREATE SCRIPT ELEMENT FOR JSONP
-    // ========================================================
+        console.log(
+          "Apps Script response:",
+          result
+        );
+
+
+        /* -----------------------------------------------
+           SUCCESS
+           ----------------------------------------------- */
+
+        if (result && result.success) {
+
+          showResult(
+
+            "✅ " +
+            (
+              result.message ||
+              "Attendance recorded successfully."
+            ),
+
+            "success"
+
+          );
+
+        }
+
+
+        /* -----------------------------------------------
+           ERROR / NOT SUCCESSFUL
+           ----------------------------------------------- */
+
+        else {
+
+          showResult(
+
+            "⚠️ " +
+            (
+              result && result.message
+                ? result.message
+                : "Attendance could not be recorded."
+            ),
+
+            "error"
+
+          );
+
+        }
+
+
+        /* -----------------------------------------------
+           Remove JSONP script
+           ----------------------------------------------- */
+
+        if (script.parentNode) {
+
+          script.parentNode.removeChild(script);
+
+        }
+
+
+        /* -----------------------------------------------
+           Remove callback
+           ----------------------------------------------- */
+
+        delete window[callbackName];
+
+
+        /* -----------------------------------------------
+           Allow next scan
+           ----------------------------------------------- */
+
+        setTimeout(
+
+          function() {
+
+            isProcessing = false;
+
+            showResult(
+
+              "Please scan the next participant's QR Code.",
+
+              "waiting"
+
+            );
+
+          },
+
+          2500
+
+        );
+
+      };
+
+
+    /* =====================================================
+       CREATE JSONP SCRIPT REQUEST
+       ===================================================== */
 
     const script =
       document.createElement("script");
 
 
-    // ========================================================
-    // CLEANUP FUNCTION
-    // ========================================================
+    script.src =
+      SCRIPT_URL +
+      "?api=scan" +
+      "&qr=" +
+      encodeURIComponent(registrationId) +
+      "&callback=" +
+      encodeURIComponent(callbackName);
 
-    function cleanup() {
 
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
+    /* =====================================================
+       CONNECTION ERROR
+       ===================================================== */
 
-      try {
+    script.onerror =
+      function() {
+
+
+        console.error(
+          "Unable to contact Apps Script."
+        );
+
+
+        showResult(
+
+          "❌ Connection error.<br>" +
+          "Unable to contact the ALTA 2026 server.",
+
+          "error"
+
+        );
+
+
+        if (script.parentNode) {
+
+          script.parentNode.removeChild(script);
+
+        }
+
+
         delete window[callbackName];
-      } catch (error) {
-        window[callbackName] = undefined;
-      }
+
+
+        isProcessing = false;
+
+      };
+
+
+    /* =====================================================
+       SEND REQUEST
+       ===================================================== */
+
+    document.body.appendChild(script);
+
+  }
+
+
+  /* =========================================================
+     QR SCANNER SUCCESS
+     ========================================================= */
+
+  function scanSuccess(decodedText) {
+
+
+    if (isProcessing) {
+
+      return;
 
     }
 
 
-    // ========================================================
-    // APPS SCRIPT RESPONSE
-    // ========================================================
-
-    window[callbackName] = function(result) {
-
-      if (completed) {
-        return;
-      }
-
-      completed = true;
+    const qrValue =
+      decodedText.trim();
 
 
-      console.log(
-        "ALTA Apps Script response:",
-        result
-      );
+    if (!qrValue) {
+
+      return;
+
+    }
 
 
-      cleanup();
+    console.log(
+      "QR Code detected:",
+      qrValue
+    );
 
 
-      if (result && result.success) {
-
-        showResult(
-          "✅ " +
-          escapeHtml(
-            result.message ||
-            "Attendance recorded successfully."
-          ),
-          "success"
-        );
-
-
-        // Clear manual ID after successful attendance.
-
-        document.getElementById("manualId").value = "";
-
-      } else {
-
-        showResult(
-          "⚠️ " +
-          escapeHtml(
-            (result && result.message) ||
-            "Attendance could not be recorded."
-          ),
-          "error"
-        );
-
-      }
-
-
-      // Allow another participant after a short delay.
-
-      setTimeout(function() {
-
-        isProcessing = false;
-
-        manualButton.disabled = false;
-
-      }, 1500);
-
-    };
-
-
-    // ========================================================
-    // BUILD APPS SCRIPT JSONP URL
-    // ========================================================
-
-    const jsonpUrl =
-      SCRIPT_URL +
-      "?api=scan" +
-      "&qr=" +
-      encodeURIComponent(qrValue) +
-      "&callback=" +
-      encodeURIComponent(callbackName) +
-      "&_=" +
-      Date.now();
-
-
-    script.src = jsonpUrl;
-    script.async = true;
-
-
-    // ========================================================
-    // CONNECTION ERROR
-    // ========================================================
-
-    script.onerror = function() {
-
-      if (completed) {
-        return;
-      }
-
-      completed = true;
-
-
-      cleanup();
-
-
-      showResult(
-        "❌ Connection error.<br>" +
-        "Unable to contact the ALTA 2026 server.",
-        "error"
-      );
-
-
-      isProcessing = false;
-      manualButton.disabled = false;
-
-    };
-
-
-    // ========================================================
-    // SEND REQUEST
-    // ========================================================
-
-    document.body.appendChild(script);
-
-
-    // ========================================================
-    // TIMEOUT PROTECTION
-    // ========================================================
-
-    setTimeout(function() {
-
-      if (completed) {
-        return;
-      }
-
-      completed = true;
-
-
-      cleanup();
-
-
-      showResult(
-        "❌ Server timeout.<br>" +
-        "Please try again.",
-        "error"
-      );
-
-
-      isProcessing = false;
-      manualButton.disabled = false;
-
-    }, 15000);
+    sendAttendance(qrValue);
 
   }
 
 
+  /* =========================================================
+     QR SCANNER ERROR
+     
+     Normal camera scanning errors are ignored.
+     ========================================================= */
 
-  // ==========================================================
-  // BASIC HTML ESCAPE
-  // Prevent IDs/messages from being interpreted as HTML.
-  // ==========================================================
+  function scanError(errorMessage) {
 
-  function escapeHtml(value) {
-
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    // Normal scanning errors are ignored.
 
   }
 
 
+  /* =========================================================
+     MANUAL ATTENDANCE
+     ========================================================= */
 
-  // ==========================================================
-  // START QR SCANNER
-  // ==========================================================
+  function submitManualAttendance() {
+
+
+    if (isProcessing) {
+
+      return;
+
+    }
+
+
+    const input =
+      document.getElementById(
+        "registrationId"
+      );
+
+
+    const registrationId =
+      input.value.trim();
+
+
+    if (!registrationId) {
+
+      showResult(
+
+        "⚠️ Please enter an ALTA Registration ID.",
+
+        "error"
+
+      );
+
+      input.focus();
+
+      return;
+
+    }
+
+
+    sendAttendance(registrationId);
+
+  }
+
+
+  /* =========================================================
+     ENTER KEY SUPPORT
+     ========================================================= */
+
+  document
+    .getElementById("registrationId")
+    .addEventListener(
+
+      "keydown",
+
+      function(event) {
+
+
+        if (event.key === "Enter") {
+
+          event.preventDefault();
+
+          submitManualAttendance();
+
+        }
+
+      }
+
+    );
+
+
+  /* =========================================================
+     START QR SCANNER
+     ========================================================= */
 
   const scanner =
     new Html5QrcodeScanner(
@@ -601,14 +768,19 @@
       "reader",
 
       {
+
         fps: 10,
 
         qrbox: {
+
           width: 250,
+
           height: 250
+
         },
 
         rememberLastUsedCamera: true
+
       },
 
       false
@@ -616,12 +788,22 @@
     );
 
 
+  /* =========================================================
+     RENDER SCANNER
+     ========================================================= */
+
   scanner.render(
+
     scanSuccess,
+
     scanError
+
   );
+
 
 </script>
 
+
 </body>
+
 </html>
