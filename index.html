@@ -393,16 +393,21 @@
      SHOW RESULT
      ========================================================= */
 
-  function showResult(message, type) {
+  let resultMessageTimer;
 
-    const result =
-      document.getElementById("result");
+function showResult(message, type) {
+    const result = document.getElementById("result");
 
     result.className = type;
-
     result.innerHTML = message;
+    result.style.display = "block";
 
-  }
+    clearTimeout(resultMessageTimer);
+
+    resultMessageTimer = setTimeout(() => {
+        result.style.display = "none";
+    }, 5000);
+}
 
 
   /* =========================================================
