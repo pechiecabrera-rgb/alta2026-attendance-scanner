@@ -281,7 +281,21 @@
   <!-- =====================================================
        QR CAMERA SCANNER
        ===================================================== -->
+  <!-- =====================================================
+       EVENT DATE SELECTION
+       ===================================================== -->
+  <div class="date-section">
+    <label for="eventDate"><strong>Select Test Date:</strong></label>
+    <select id="eventDate">
+      <option value="2026-10-13">October 13, 2026 — Event Day 1 (Nov 23)</option>
+      <option value="2026-10-14">October 14, 2026 — Event Day 2 (Nov 24)</option>
+      <option value="2026-10-15">October 15, 2026 — Event Day 3 (Nov 25)</option>
+      <option value="2026-10-16">October 16, 2026 — Event Day 4 (Nov 26)</option>
+    </select>
+  </div>
 
+
+  
   <div id="reader"></div>
 
 
@@ -587,14 +601,15 @@ function showResult(message, type) {
 
 
     script.src =
-      SCRIPT_URL +
-      "?api=scan" +
-      "&qr=" +
-      encodeURIComponent(registrationId) +
-      "&mode=dryrun" + 
-      "&callback=" +
-      encodeURIComponent(callbackName);
-
+  SCRIPT_URL +
+  "?api=scan" +
+  "&qr=" +
+  encodeURIComponent(registrationId) +
+  "&testDate=" +
+  encodeURIComponent(document.getElementById("eventDate").value) +
+  "&mode=scheduledtest" +
+  "&callback=" +
+  encodeURIComponent(callbackName);
 
     /* =====================================================
        CONNECTION ERROR
